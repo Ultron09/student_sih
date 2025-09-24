@@ -52,7 +52,7 @@ const features = [
     description: "Find valuable study materials and scholarship information.",
     href: "/resources",
     cta: "View Resources",
-  }
+  },
 ];
 
 export default function DashboardPage() {
