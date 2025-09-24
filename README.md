@@ -105,8 +105,4 @@ npm start
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/Ultron09/student_sih/issues).
-<<<<<<< HEAD
 ```
-=======
-```
->>>>>>> 81294140eb7ecc7b098de016cc1baea411bd200d
