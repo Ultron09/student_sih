@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -28,6 +29,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Building2, GraduationCap, Loader2, BookOpen, Star, MapPin, Sparkles } from "lucide-react";
+import { AptitudeContext } from "@/context/AptitudeContext";
+import { type AptitudeAssessmentOutput } from "@/ai/flows/aptitude-assessment-quiz";
 
 const formSchema = z.object({
   age: z.coerce.number().min(14, "Age must be at least 14.").max(25, "Age must be at most 25."),
@@ -38,10 +41,21 @@ const formSchema = z.object({
   assessmentResults: z.string().min(10, "Please provide your assessment results."),
 });
 
+function formatAptitudeResults(result: AptitudeAssessmentOutput | null): string {
+    if (!result) return "";
+    let summary = `Strengths: Analytical(${result.analyticalStrength}), Creative(${result.creativeThinking}), Numerical(${result.numericalAbility}), Verbal(${result.verbalCommunication}), Decision Making(${result.decisionMaking}). `;
+    summary += `Learning Style: ${result.preferredLearningStyle}. `;
+    summary += `Interests: ${result.interests.join(", ")}. `;
+    summary += `Summary: ${result.reasoning}`;
+    return summary;
+}
+
+
 export function RecommendationsForm() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PersonalizedCourseRecommendationsOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { aptitudeResult } = useContext(AptitudeContext);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -51,7 +65,7 @@ export function RecommendationsForm() {
       classLevel: "",
       location: "",
       academicInterests: "",
-      assessmentResults: "",
+      assessmentResults: formatAptitudeResults(aptitudeResult),
     },
   });
 

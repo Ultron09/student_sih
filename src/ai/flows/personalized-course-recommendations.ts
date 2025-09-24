@@ -9,42 +9,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { collegesData, College } from '@/data/colleges';
-import { careerPathsData, CareerPath } from '@/data/career-paths';
-
-const getCollegesTool = ai.defineTool(
-  {
-    name: 'getColleges',
-    description: 'Returns a list of colleges based on location and program.',
-    inputSchema: z.object({
-      location: z.string().describe('The location to search for colleges.'),
-      programs: z.array(z.string()).describe('A list of programs to filter by.'),
-    }),
-    outputSchema: z.array(z.custom<College>()),
-  },
-  async (input) => {
-    return collegesData.filter(college =>
-      college.location.toLowerCase().includes(input.location.toLowerCase()) &&
-      input.programs.some(p => college.programs.some(cp => cp.toLowerCase().includes(p.toLowerCase())))
-    );
-  }
-);
-
-const getCareerPathsTool = ai.defineTool(
-  {
-    name: 'getCareerPaths',
-    description: 'Returns a list of career paths based on a degree.',
-    inputSchema: z.object({
-      degree: z.string().describe('The degree to search for career paths.'),
-    }),
-    outputSchema: z.array(z.custom<CareerPath>()),
-  },
-  async (input) => {
-    const degreeKey = input.degree.toLowerCase().replace(/\s/g, '').replace(/\./g, '');
-    return careerPathsData[degreeKey as keyof typeof careerPathsData] || [];
-  }
-);
-
+import { searchColleges } from '@/ai/tools/search-colleges';
+import { getCareerPathsTool } from '@/ai/tools/get-career-paths';
 
 const PersonalizedCourseRecommendationsInputSchema = z.object({
   age: z.number().describe('The age of the student.'),
@@ -65,17 +31,17 @@ export type PersonalizedCourseRecommendationsInput = z.infer<
 const PersonalizedCourseRecommendationsOutputSchema = z.object({
   recommendedCourses: z
     .array(z.string())
-    .describe('A list of recommended courses based on the student profile and assessment results.'),
+    .describe('A list of 3-5 recommended course names (e.g., "B.Sc. in Computer Science", "B.A. in History").'),
   recommendedColleges: z
     .array(z.string())
-    .describe('A list of recommended colleges based on the student profile and assessment results.'),
+    .describe('A list of 3-5 recommended college names and their locations.'),
   recommendedCareerPaths: z
     .array(z.string())
     .describe(
-      'A list of recommended career paths based on the student profile and assessment results.'
+      'A list of 3-5 recommended career path names.'
     ),
-  studyMaterials: z.array(z.string()).describe('Recommended study materials tailored to the subject choice.'),
-  scholarshipInfo: z.array(z.string()).describe('Relevant scholarship information for the student.'),
+  studyMaterials: z.array(z.string()).describe('A list of 3-5 recommended study materials tailored to the subject choice.'),
+  scholarshipInfo: z.array(z.string()).describe('A list of 2-3 relevant scholarship opportunities.'),
 });
 export type PersonalizedCourseRecommendationsOutput = z.infer<
   typeof PersonalizedCourseRecommendationsOutputSchema
@@ -91,8 +57,8 @@ const prompt = ai.definePrompt({
   name: 'personalizedCourseRecommendationsPrompt',
   input: {schema: PersonalizedCourseRecommendationsInputSchema},
   output: {schema: PersonalizedCourseRecommendationsOutputSchema},
-  tools: [getCollegesTool, getCareerPathsTool],
-  prompt: `You are an AI-powered education advisor that provides personalized course, college, and career path recommendations to students based on their profile and assessment results.
+  tools: [searchColleges, getCareerPathsTool],
+  prompt: `You are an AI-powered education advisor. Your goal is to provide personalized and actionable recommendations to a student based on their profile and assessment results.
 
   Student Profile:
   - Age: {{{age}}}
@@ -102,14 +68,14 @@ const prompt = ai.definePrompt({
   - Academic Interests: {{{academicInterests}}}
   - Assessment Results: {{{assessmentResults}}}
 
-  Based on this information, provide the following:
-  - Recommended Courses: An array of 3-5 suitable academic courses.
-  - Recommended Colleges: An array of 3-5 nearby government colleges based on the provided location. Use the getColleges tool to find suitable colleges. For each college, list its name and location.
-  - Recommended Career Paths: An array of 3-5 potential career paths. Use the getCareerPaths tool to find suitable careers for the recommended courses.
-  - Study Materials: An array of suggested study materials tailored to the subject choice.
-  - Scholarship Info: An array of relevant scholarship information.
+  Instructions:
+  1.  **Recommend Courses**: Based on the student's profile, especially their interests and assessment results, recommend an array of 3-5 suitable academic courses (e.g., "B.Sc. in Physics", "B.Tech in Computer Science").
+  2.  **Recommend Colleges**: Use the \`searchColleges\` tool to find 3-5 government colleges in the student's specified \`location\` that offer one or more of the courses you recommended. For each college, provide its name and location in the response.
+  3.  **Recommend Career Paths**: For the recommended courses, use the \`getCareerPaths\` tool to identify and suggest 3-5 potential career paths.
+  4.  **Suggest Study Materials**: Provide an array of 3-5 general study materials or platforms (like 'NCERT Textbooks', 'NPTEL Courses') relevant to the recommended subjects.
+  5.  **Provide Scholarship Info**: Suggest an array of 2-3 national or relevant state-level scholarship programs.
 
-  Please ensure that the recommendations are aligned with the student's interests, strengths, and personality traits, as indicated in the assessment results. The response should be structured and easy to understand.
+  Ensure that all recommendations are aligned with the student's profile. Structure the entire output in the specified JSON format.
   `,
 });
 

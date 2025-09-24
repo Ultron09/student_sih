@@ -4,8 +4,7 @@ import { assessAptitude, type AptitudeAssessmentInput, type AptitudeAssessmentOu
 import { z } from 'zod';
 
 const AptitudeAssessmentInputSchema = z.object({
-  interests: z.string(),
-  strengths: z.string(),
+  answers: z.record(z.string()),
 });
 
 export async function handleAptitudeAssessment(data: AptitudeAssessmentInput): Promise<{success: boolean; data?: AptitudeAssessmentOutput; error?: string}> {

@@ -46,6 +46,13 @@ const features = [
     href: "/career-paths",
     cta: "View Paths",
   },
+  {
+    icon: Book,
+    title: "Resources",
+    description: "Find valuable study materials and scholarship information.",
+    href: "/resources",
+    cta: "View Resources",
+  }
 ];
 
 export default function DashboardPage() {
@@ -70,7 +77,7 @@ export default function DashboardPage() {
           </div>
           <div className="relative h-64 md:h-full min-h-[250px]">
              <Image
-                src="https://picsum.photos/600/400"
+                src="https://picsum.photos/seed/1/600/400"
                 alt="A group of students collaborating and looking at a laptop."
                 fill
                 className="object-cover"
@@ -80,7 +87,7 @@ export default function DashboardPage() {
         </div>
       </Card>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {features.map((feature) => (
           <Card key={feature.title} className="flex flex-col">
             <CardHeader>
